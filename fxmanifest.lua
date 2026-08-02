@@ -5,17 +5,9 @@ author 'The Nexus Core Framework team'
 description 'The shared Nexus Core design system and NUI contracts.'
 version '0.1.0'
 
-shared_scripts {
-    'shared/*.lua',
-}
-
-client_scripts {
-    'client/*.lua',
-}
-
-files {
-    'locales/*.json',
-}
+-- No script blocks are declared yet: this resource has no code, and a manifest
+-- that declares files which do not exist is a lie the server may tolerate and a
+-- reviewer will not notice. Blocks are added as each directory gains files.
 
 dependencies {
     'nxc_lib',
