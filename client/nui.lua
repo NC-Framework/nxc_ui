@@ -66,7 +66,17 @@ end
 ---
 ---@param owner string|nil
 function Nui.close(owner)
+    local closing = openSurface
+
     SendNUIMessage({ type = NxcUi.Contracts.MESSAGE.CLOSE, surface = openSurface })
+
+    -- Said out loud, on every close path: the button, Escape, a resource
+    -- stopping, or a programmatic close. A resource holding state for an open
+    -- surface has no other way to learn it is gone, and the residue is a menu
+    -- that was dismissed while something still believes it is open.
+    if closing then
+        TriggerEvent('nxc_ui:client:closed', closing)
+    end
     if owner then
         NxcUi.Focus.release(owner, openSurface)
     else
@@ -95,16 +105,35 @@ RegisterNUICallback('callback', function(data, cb)
     end
 
     local surface = openSurface
-    Nui.close()
 
-    -- Forwarded to the server, which resolves the acting player from the session
-    -- rather than from anything here.
-    TriggerServerEvent('nxc_ui:server:callback', {
+    local response = {
         surface = surface,
         action = data.action,
         values = data.values,
         itemId = data.itemId,
-    })
+    }
+
+    -- ANNOUNCED LOCALLY FIRST, and this is not a convenience.
+    --
+    -- A client resource often has to attach context only it holds before
+    -- anything reaches the server. nxc_target is the case: it knows which entity
+    -- the crosshair was on, and the server cannot — so a selection has to come
+    -- back here for the network id to be added before it is sent.
+    --
+    -- Without this the callback went to the server only, where it was dropped
+    -- because nothing had registered a handler for the surface. Clicking a menu
+    -- item did nothing at all, silently.
+    --
+    -- Emitted BEFORE closing, so a handler still sees which surface was open.
+    TriggerEvent('nxc_ui:client:selected', surface, response)
+
+    Nui.close()
+
+    -- And forwarded to the server, which resolves the acting player from the
+    -- session rather than from anything here. Both consumers exist: a server
+    -- handler registered through `onCallback`, and a client resource that needs
+    -- to add local context first.
+    TriggerServerEvent('nxc_ui:server:callback', response)
 
     cb({ ok = true })
 end)

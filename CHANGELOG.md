@@ -2,6 +2,21 @@
 
 Entries are added only for genuinely user-visible or contract-relevant changes.
 
+## 0.2.3 - 2026-08-03
+
+### Added
+
+- `nxc_ui:client:selected` and `nxc_ui:client:closed`, emitted locally.
+
+  **A callback went to the server only.** A client resource that needs to attach
+  context only it holds — nxc_target knows which entity the crosshair was on, and
+  the server cannot — had no way to see a selection before it left the machine.
+  Clicking a menu item did nothing at all, silently, because nothing had
+  registered a server handler for the surface either.
+
+  `closed` exists for the same reason in reverse: a resource holding state for an
+  open surface had no way to learn it had been dismissed.
+
 ## 0.2.1 — 2026-08-03
 
 ### Fixed
