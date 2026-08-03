@@ -24,7 +24,7 @@ nxc_legacy_compatibility 'none'
 
 author 'The Nexus Core Framework team'
 description 'The shared Nexus Core design system and NUI contracts.'
-version '0.1.0'
+version '0.2.0'
 
 -- Scripts are ENUMERATED, in load order. A glob sorts alphabetically, which is
 -- not dependency order.
@@ -53,14 +53,17 @@ shared_scripts {
     'shared/namespace.lua',
     'shared/focus.lua',
     'shared/contracts.lua',
+    'shared/demo_surfaces.lua',
 }
 
 client_scripts {
     'client/nui.lua',
+    'client/demo.lua',
 }
 
 server_scripts {
     'server/callbacks.lua',
+    'server/demo.lua',
 }
 
 -- The built NUI. `dist/` IS COMMITTED, which the repository standards otherwise
