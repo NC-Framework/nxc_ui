@@ -24,7 +24,7 @@ nxc_legacy_compatibility 'none'
 
 author 'The Nexus Core Framework team'
 description 'The shared Nexus Core design system and NUI contracts.'
-version '0.2.0'
+version '0.2.1'
 
 -- Scripts are ENUMERATED, in load order. A glob sorts alphabetically, which is
 -- not dependency order.

@@ -140,7 +140,21 @@ AddEventHandler('onClientResourceStop', function(resource)
     end
 end)
 
-exports('show', function(message) return Nui.show(message) end)
+--- `show` RETURNS A PLAIN TABLE.
+---
+--- `Nui.show` returns a Result, and a Result is frozen — a frozen table has no
+--- keys of its own, so it crosses a resource boundary as `{}`. The caller sees
+--- no `ok` field and reads a success as a failure, or worse, a refusal as a
+--- success.
+---
+--- This is the same defect nxc_config had, and it shipped here anyway: the fix
+--- was applied where the bug was found rather than everywhere the pattern
+--- occurred. The two-state boundary harness found it within minutes of existing,
+--- which is the argument for the harness.
+---
+--- `close` and `isBusy` need nothing: one returns nothing, the other a boolean,
+--- and a scalar has no metatable to lose.
+exports('show', function(message) return Nxc.plain(Nui.show(message)) end)
 exports('close', function() Nui.close(GetInvokingResource()) end)
 exports('isBusy', function() return NxcUi.Focus.isHeld() end)
 

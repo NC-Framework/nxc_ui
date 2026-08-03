@@ -2,6 +2,21 @@
 
 Entries are added only for genuinely user-visible or contract-relevant changes.
 
+## 0.2.1 — 2026-08-03
+
+### Fixed
+
+- The `show` export returns a plain table. It returned a Result, and a Result is
+  frozen — a frozen table has no keys of its own, so it crossed a resource
+  boundary as an empty one. A caller would have read a refusal as a success.
+
+  THIS IS THE SAME DEFECT nxc_config HAD, and it shipped here anyway, because the
+  fix was applied where the bug was found rather than everywhere the pattern
+  occurred. Nothing had ever called the export, so nothing noticed.
+
+  Found by the two-state boundary harness within minutes of that harness
+  existing, on the first export it was pointed at.
+
 ## 0.2.0 — 2026-08-03
 
 ### Added
