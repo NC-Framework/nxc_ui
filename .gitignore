@@ -3,6 +3,12 @@ node_modules/
 
 # Build and tool output
 dist/
+
+# EXCEPT the built NUI, which ships with the resource. An operator installs this
+# and starts a server; there is no build step in that sequence, and shipping only
+# source would put Node and a toolchain on the critical path for a notification.
+!web/dist/
+!web/dist/**
 build/
 .cache/
 *.tsbuildinfo

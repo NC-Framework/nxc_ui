@@ -26,9 +26,54 @@ author 'The Nexus Core Framework team'
 description 'The shared Nexus Core design system and NUI contracts.'
 version '0.1.0'
 
--- No script blocks are declared yet: this resource has no code, and a manifest
--- that declares files which do not exist is a lie the server may tolerate and a
--- reviewer will not notice. Blocks are added as each directory gains files.
+-- Scripts are ENUMERATED, in load order. A glob sorts alphabetically, which is
+-- not dependency order.
+--
+-- nxc_lib's modules load INTO this resource's Lua state: every FiveM resource
+-- has its own state, so declaring a dependency orders startup and shares no code.
+shared_scripts {
+    '@nxc_lib/shared/namespace.lua',
+    '@nxc_lib/shared/result.lua',
+    '@nxc_lib/shared/errors.lua',
+    '@nxc_lib/shared/correlation.lua',
+    '@nxc_lib/shared/time.lua',
+    '@nxc_lib/shared/serialize.lua',
+    '@nxc_lib/shared/validate.lua',
+    '@nxc_lib/shared/envelope.lua',
+    '@nxc_lib/shared/ratelimit.lua',
+    '@nxc_lib/shared/cancel.lua',
+    '@nxc_lib/shared/logger.lua',
+    '@nxc_lib/shared/locale.lua',
+    '@nxc_lib/shared/permissions.lua',
+    '@nxc_lib/shared/health.lua',
+    '@nxc_lib/shared/persistence.lua',
+    '@nxc_lib/shared/migrations.lua',
+    '@nxc_lib/shared/config_schema.lua',
+
+    'shared/namespace.lua',
+    'shared/focus.lua',
+    'shared/contracts.lua',
+}
+
+client_scripts {
+    'client/nui.lua',
+}
+
+server_scripts {
+    'server/callbacks.lua',
+}
+
+-- The built NUI. `dist/` IS COMMITTED, which the repository standards otherwise
+-- discourage: an operator installs a resource and starts a server, and there is
+-- no build step in that sequence. Shipping only source would mean every server
+-- needed Node and a toolchain to display a notification.
+ui_page 'web/dist/index.html'
+
+files {
+    'web/dist/index.html',
+    'web/dist/nxc_ui.js',
+    'web/dist/nxc_ui.css',
+}
 
 dependencies {
     'nxc_lib',

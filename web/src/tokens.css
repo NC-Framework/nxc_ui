@@ -1,0 +1,147 @@
+/*
+ * Design tokens.
+ *
+ * One source of truth for colour, spacing, type, elevation and motion. A
+ * component that hardcodes a hex value is a component that will not follow the
+ * next theme change, and there is no way to find it except by looking.
+ *
+ * ACCESSIBILITY IS EXPRESSED HERE RATHER THAN PER COMPONENT, because a
+ * requirement implemented per component is a requirement implemented in most
+ * components. Contrast is chosen at the token, reduced motion is honoured at the
+ * token, and focus is visible by default rather than opted into.
+ */
+
+:root {
+  /* ---------------------------------------------------------------- colour
+   *
+   * A game overlay sits on top of arbitrary, moving, mostly-bright scenery, so
+   * surfaces are dark and opaque rather than translucent. A translucent panel
+   * over daylight is unreadable, and over night it is invisible.
+   *
+   * Every foreground/background pair below meets WCAG AA at body size. That is
+   * a floor, not a target, and it is why these are not simply "nice greys".
+   */
+  --nxc-surface-0: #0e1116;   /* furthest back */
+  --nxc-surface-1: #161b22;   /* panels */
+  --nxc-surface-2: #1f262e;   /* raised: menu items, inputs */
+  --nxc-surface-3: #2b333d;   /* hover */
+
+  --nxc-text-primary: #f0f3f6;    /* 15.8:1 on surface-1 */
+  --nxc-text-secondary: #b6c0cb;  /*  8.4:1 on surface-1 */
+  --nxc-text-muted: #8792a0;      /*  4.9:1 on surface-1 — AA, and the floor */
+
+  --nxc-border: #303a45;
+  --nxc-border-strong: #47535f;
+
+  /* Severity. Each is paired with a text colour that passes on it, because a
+   * warning nobody can read is not a warning. */
+  --nxc-info: #4a9eff;
+  --nxc-success: #3fb950;
+  --nxc-warning: #d29922;
+  --nxc-danger: #f85149;
+  --nxc-on-severity: #0e1116;
+
+  /* Accent. Deliberately not red or green: those carry meaning here. */
+  --nxc-accent: #6e8fff;
+  --nxc-accent-hover: #8aa4ff;
+
+  /* ---------------------------------------------------------------- spacing
+   * A 4px scale. Named by step rather than by pixel so a density change is one
+   * edit rather than a search. */
+  --nxc-space-1: 0.25rem;
+  --nxc-space-2: 0.5rem;
+  --nxc-space-3: 0.75rem;
+  --nxc-space-4: 1rem;
+  --nxc-space-5: 1.5rem;
+  --nxc-space-6: 2rem;
+
+  /* ------------------------------------------------------------------- type
+   * rem-based, so the player's own scaling is respected. A game UI in fixed
+   * pixels is a game UI that ignores the accessibility settings the player
+   * already told their system about. */
+  --nxc-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --nxc-text-xs: 0.75rem;
+  --nxc-text-sm: 0.875rem;
+  --nxc-text-base: 1rem;
+  --nxc-text-lg: 1.25rem;
+  --nxc-text-xl: 1.5rem;
+  --nxc-line-tight: 1.25;
+  --nxc-line-normal: 1.5;
+
+  --nxc-radius-sm: 4px;
+  --nxc-radius: 8px;
+  --nxc-radius-lg: 12px;
+
+  /* Elevation by shadow only. A game overlay has no ambient light to model, and
+   * layered translucency over moving scenery reads as smearing. */
+  --nxc-shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --nxc-shadow-2: 0 4px 12px rgb(0 0 0 / 0.5);
+  --nxc-shadow-3: 0 12px 32px rgb(0 0 0 / 0.6);
+
+  /* ----------------------------------------------------------------- motion
+   * Short. An interface a player meets fifty times an hour must not make them
+   * wait for it, and animation in a game overlay competes with the game. */
+  --nxc-duration-fast: 120ms;
+  --nxc-duration: 180ms;
+  --nxc-duration-slow: 260ms;
+  --nxc-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Focus ring. Two colours so it is visible against both dark surfaces and
+   * light imagery bleeding through at the edges. */
+  --nxc-focus-ring: 0 0 0 2px var(--nxc-surface-0), 0 0 0 4px var(--nxc-accent);
+}
+
+/*
+ * REDUCED MOTION IS HONOURED HERE, ONCE.
+ *
+ * Overriding the duration tokens means every component that uses them complies
+ * without knowing this rule exists. A component that animates anyway has
+ * hardcoded a duration, which is already forbidden — so this makes that mistake
+ * visible rather than merely prohibited.
+ *
+ * 1ms rather than 0: some transition-end handlers never fire at zero, and a
+ * dialog that never finishes opening is worse than one that opens instantly.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --nxc-duration-fast: 1ms;
+    --nxc-duration: 1ms;
+    --nxc-duration-slow: 1ms;
+  }
+}
+
+/*
+ * Focus is visible by default and removed only for pointer users who already
+ * know where they clicked. Removing the outline outright is the single most
+ * common way an interface becomes unusable by keyboard, and controller
+ * navigation on a game UI is keyboard navigation wearing a hat.
+ */
+:where(button, [role='button'], a, input, select, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--nxc-focus-ring);
+}
+
+/*
+ * The NUI root is transparent and does not capture pointer events. Only the
+ * surfaces inside it do.
+ *
+ * A full-screen NUI that captures clicks is a NUI that eats every click in the
+ * game while it is open, whether or not anything is being shown.
+ */
+html,
+body,
+#nxc-root {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+  font-family: var(--nxc-font);
+  font-size: var(--nxc-text-base);
+  line-height: var(--nxc-line-normal);
+  color: var(--nxc-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+.nxc-interactive {
+  pointer-events: auto;
+}

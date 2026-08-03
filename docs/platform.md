@@ -13,9 +13,14 @@ someone looked and found nothing, and an absent section is not.
 
 ### 1. Enhanced natives and platform APIs used
 
-**None — this resource has no code yet.**
+| Where | Uses |
+| --- | --- |
+| `client/nui.lua` | `SetNuiFocus`, `SendNUIMessage`, `RegisterNUICallback`, `IsControlJustPressed`, `CreateThread`, `Wait`, `AddEventHandler`, `TriggerServerEvent` |
+| `server/callbacks.lua` | `RegisterNetEvent`, `exports` |
 
-That is a statement about the present, not a claim about the design. NUI is where this resource's platform exposure will concentrate. `SendNUIMessage`, `RegisterNUICallback`, `SetNuiFocus`, and focus and cursor handling all sit on the platform boundary, and NUI behaviour is one of the areas most worth verifying early on Enhanced rather than assuming.
+**`SetNuiFocus` is the one that matters**, and it is called from exactly one function so the natives and the state machine cannot disagree in more than one place. Everything in `shared/` is pure Lua and runs under `wasmoon`.
+
+**NUI is the platform surface most likely to differ on Enhanced**, and none of it has been exercised there. The CEF version, focus behaviour, and callback transport are all platform-provided.
 
 ### 2. Deprecated or compatibility-only natives used
 
@@ -27,7 +32,9 @@ That is a statement about the present, not a claim about the design. NUI is wher
 
 ### 4. Voice, networking, state bag, entity, and routing bucket assumptions
 
-**Not yet determined.**
+**Networking:** a NUI callback crosses from the browser to the client and then to the server. **It is untrusted at every hop** — the browser runs on the player's machine, so this is a claim exactly like a network event. Validated on the client and again on the server, and the acting player is resolved from `source` rather than from anything in the payload.
+
+**Entities, state bags, routing buckets, voice:** none.
 
 Routing buckets, when needed, are **requested from `nxc_core`**, never chosen. Two resources picking the
 same number is the accidental-instance failure the design names as an existing production problem.

@@ -4,12 +4,11 @@
   "type": "module",
   "version": "0.1.0",
   "license": "MIT",
-  "author": "Ezekiel Hammond — Nexus Core Framework",
-  "description": "The shared Nexus Core design system and NUI contracts.",
   "author": "The Nexus Core Framework team",
+  "description": "The shared Nexus Core design system and NUI contracts.",
   "homepage": "https://nxcframework.net",
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test \"tests/**/*.test.mjs\""
   },
   "devDependencies": {
     "wasmoon": "^1.16.0"
