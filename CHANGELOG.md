@@ -2,6 +2,32 @@
 
 Entries are added only for genuinely user-visible or contract-relevant changes.
 
+## 0.2.5 - 2026-08-03
+
+### Fixed
+
+- **The game consumed the mouse alongside the browser.** `SetNuiFocusKeepInput(true)`
+  means BOTH receive input — which is what keeps the hold key working, and also
+  meant moving the mouse looked around and clicking swung a fist.
+
+  Reviewed against `ox_target`, which solves this the same way and is proven on
+  live servers. Three things were missing:
+
+  **The cursor was never placed.** `SetCursorLocation(0.5, 0.5)` is called before
+  focus is given. Without it the cursor keeps whatever position it last held —
+  frequently a screen edge, never over the menu that just opened. The menu looked
+  unclickable because the pointer was not on it.
+
+  **Firing needs `DisablePlayerFiring`**, not a disabled control. Disabling ATTACK
+  alone does not cover every weapon path, so ATTACK is deliberately absent from
+  the suppression list.
+
+  **Look and melee controls are held down every frame** while a cursor surface is
+  open, and released with it.
+
+  The approach — `SetNuiFocus(true, true)` with `SetNuiFocusKeepInput(true)` — was
+  already right. What was missing was everything that makes it usable.
+
 ## 0.2.4 - 2026-08-03
 
 ### Fixed

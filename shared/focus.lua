@@ -165,6 +165,49 @@ end
 --- the runtime.
 ---
 ---@return { hasFocus: boolean, hasCursor: boolean }
+--- Game controls that must be suppressed while a cursor-mode surface is open.
+---
+--- **`SetNuiFocusKeepInput(true)` MEANS BOTH THE BROWSER AND THE GAME RECEIVE
+--- INPUT.** That is what makes the hold key keep working — without it the game
+--- stops processing input, the key release never fires, and a player who lets go
+--- is left holding a cursor with no way out.
+---
+--- The cost is that the game also acts on the mouse: moving it looks around, and
+--- clicking swings a fist. So the specific conflicting controls are disabled for
+--- as long as the surface is open, and only those.
+---
+--- Turning input off wholesale instead would fix the punching and strand the
+--- player, which is a strictly worse trade.
+---
+--- Listed as data rather than a sequence of calls so the set is reviewable and
+--- the client half stays a loop that applies it.
+--- Matched to ox_target's set, which is proven on live servers.
+---
+--- Notably it does NOT disable ATTACK (24). Firing is suppressed with
+--- `DisablePlayerFiring`, which is a different mechanism and the reliable one —
+--- disabling the control alone does not stop every weapon path.
+Focus.SUPPRESSED_CONTROLS = {
+    1,    -- LOOK_LR      the camera follows the mouse otherwise
+    2,    -- LOOK_UD
+    25,   -- AIM
+    140,  -- MELEE_ATTACK_LIGHT
+    141,  -- MELEE_ATTACK_HEAVY
+    142,  -- MELEE_ATTACK_ALTERNATE
+}
+
+--- Which controls to suppress right now.
+---
+--- Empty unless a cursor-mode surface is open. Full mode needs none: the game is
+--- not receiving input at all, so there is nothing to suppress.
+---
+---@return table
+function Focus.suppressedControls()
+    if current and current.mode == Focus.MODE.CURSOR then
+        return Focus.SUPPRESSED_CONTROLS
+    end
+    return {}
+end
+
 function Focus.nativeState()
     if not current then
         return { hasFocus = false, hasCursor = false, keepInput = false }

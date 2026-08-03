@@ -223,3 +223,62 @@ describe('Native state', () => {
     assert.equal(r.hasCursor, false);
   });
 });
+
+describe('Controls suppressed while a cursor surface is open', () => {
+  let lua;
+  beforeEach(async () => { lua = await createEngine(); });
+  afterEach(() => lua.global.close());
+
+  const suppressed = (setup) => lua.doString(`
+    ${setup}
+    local list = NxcUi.Focus.suppressedControls()
+    local out = {}
+    for _, control in ipairs(list) do out[#out + 1] = control end
+    table.sort(out)
+    return table.concat(out, ',')
+  `);
+
+  test('nothing is suppressed when nothing is open', async () => {
+    assert.equal(await suppressed(''), '');
+  });
+
+  test('cursor mode suppresses look and melee', async () => {
+    const r = await suppressed(
+      `NxcUi.Focus.acquire({ owner = 'nxc_target', surface = 'menu', mode = 'cursor' })`);
+    // Matched to ox_target's set. `SetNuiFocusKeepInput(true)` means the game
+    // receives the mouse as well as the browser, so moving it looks around and
+    // clicking swings — unless these are held down every frame.
+    assert.equal(r, '1,2,25,140,141,142');
+  });
+
+  test('full mode suppresses nothing, because the game gets no input at all', async () => {
+    const r = await suppressed(
+      `NxcUi.Focus.acquire({ owner = 'nxc_interact', surface = 'form', mode = 'full' })`);
+    // Suppressing controls the game is not receiving would be work for nothing,
+    // and it would hide a mistake if keepInput were ever set wrongly for this
+    // mode.
+    assert.equal(r, '');
+  });
+
+  test('releasing stops the suppression', async () => {
+    const r = await suppressed(`
+      NxcUi.Focus.acquire({ owner = 'nxc_target', surface = 'menu', mode = 'cursor' })
+      NxcUi.Focus.forceRelease()
+    `);
+    // Left running, the player could not look around or swing again after the
+    // menu closed — a stuck state that looks like the game freezing.
+    assert.equal(r, '');
+  });
+
+  test('ATTACK is deliberately not in the list', async () => {
+    const r = await lua.doString(`
+      for _, control in ipairs(NxcUi.Focus.SUPPRESSED_CONTROLS) do
+        if control == 24 then return true end
+      end
+      return false
+    `);
+    // Firing is suppressed with DisablePlayerFiring instead, which covers weapon
+    // paths that disabling the control does not. ox_target does the same.
+    assert.equal(r, false);
+  });
+});

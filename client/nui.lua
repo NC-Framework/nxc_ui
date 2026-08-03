@@ -21,6 +21,19 @@ local openSurface = nil
 --- there is one place where natives and state can disagree, and it is this one.
 local function applyFocus()
     local state = NxcUi.Focus.nativeState()
+
+    -- **THE CURSOR IS PLACED BEFORE FOCUS IS GIVEN.**
+    --
+    -- Without this the cursor keeps whatever position it last had, which after a
+    -- session of playing is wherever it was when some other interface closed —
+    -- frequently a screen edge, and never over the menu that just opened. The
+    -- menu looked unclickable because the pointer was not on it.
+    --
+    -- ox_target does the same thing for the same reason. It is the one line that
+    -- makes "the cursor appears" and "the cursor is somewhere useful" the same
+    -- statement.
+    if state.hasFocus then SetCursorLocation(0.5, 0.5) end
+
     SetNuiFocus(state.hasFocus, state.hasCursor)
 
     -- Applied every time, including on release. `SetNuiFocusKeepInput` is sticky:
@@ -90,6 +103,35 @@ function Nui.close(owner)
     openSurface = nil
     applyFocus()
 end
+
+--- Suppress the controls the game would otherwise act on.
+---
+--- Runs only while a cursor-mode surface is open. `DisableControlAction` lasts
+--- one frame, so this has to be every frame — which is why it is its own thread
+--- and why it sleeps entirely when nothing is open.
+CreateThread(function()
+    while true do
+        local controls = NxcUi.Focus.suppressedControls()
+
+        if #controls == 0 then
+            -- Nothing open. A frame-rate loop that spends the session doing
+            -- nothing is the cost this project avoids everywhere else.
+            Wait(200)
+        else
+            for index = 1, #controls do
+                DisableControlAction(0, controls[index], true)
+            end
+
+            -- Firing is suppressed separately, and this is the part that
+            -- actually stops a click becoming a punch or a shot. Disabling the
+            -- attack control alone does not cover every weapon path, which is
+            -- why ox_target uses this instead.
+            DisablePlayerFiring(PlayerId(), true)
+
+            Wait(0)
+        end
+    end
+end)
 
 --- The NUI answering.
 ---
