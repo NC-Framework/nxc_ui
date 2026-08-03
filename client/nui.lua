@@ -22,6 +22,11 @@ local openSurface = nil
 local function applyFocus()
     local state = NxcUi.Focus.nativeState()
     SetNuiFocus(state.hasFocus, state.hasCursor)
+
+    -- Applied every time, including on release. `SetNuiFocusKeepInput` is sticky:
+    -- setting it true for a menu and never setting it back would leave the next
+    -- surface unable to block movement, which is the whole point of a modal one.
+    SetNuiFocusKeepInput(state.keepInput)
 end
 
 --- Show something.

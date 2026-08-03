@@ -157,16 +157,51 @@ describe('Releasing focus', () => {
 });
 
 describe('Native state', () => {
-  test('cursor mode leaves the player able to move', async () => {
+  test('cursor mode is clickable AND leaves the player able to move', async () => {
     const r = await lua.doString(`
       NxcUi.Focus.acquire({ owner = 'nxc_target', surface = 'menu', mode = 'cursor' })
       local s = NxcUi.Focus.nativeState()
-      return { hasFocus = s.hasFocus, hasCursor = s.hasCursor }
+      return { hasFocus = s.hasFocus, hasCursor = s.hasCursor, keepInput = s.keepInput }
     `);
-    // Getting this backwards is why a player ends up unable to walk while a
-    // menu they can click is on screen.
-    assert.equal(r.hasFocus, false);
+    // THIS TEST PREVIOUSLY ASSERTED hasFocus = false, AND CERTIFIED A BUG.
+    //
+    // `SetNuiFocus(hasFocus, hasCursor)` takes INPUT first and VISIBILITY
+    // second. Reasoning that "cursor only" meant "no input focus" produced a
+    // menu that was drawn, had a working cursor, and received no mouse events —
+    // clicking it did nothing at all, as though the buttons were pictures.
+    //
+    // Two separate things were conflated. Receiving clicks is `hasFocus`.
+    // Leaving the player able to walk is `SetNuiFocusKeepInput`, a different
+    // native.
+    assert.equal(r.hasFocus, true, 'without input focus the browser gets no clicks');
     assert.equal(r.hasCursor, true);
+    assert.equal(r.keepInput, true, 'without this the player cannot move');
+  });
+
+  test('full mode takes input away from the game', async () => {
+    const r = await lua.doString(`
+      NxcUi.Focus.acquire({ owner = 'nxc_interact', surface = 'form', mode = 'full' })
+      local s = NxcUi.Focus.nativeState()
+      return { hasFocus = s.hasFocus, keepInput = s.keepInput }
+    `);
+    // The difference between the two modes is keepInput and nothing else.
+    assert.equal(r.hasFocus, true);
+    assert.equal(r.keepInput, false);
+  });
+
+  test('released focus clears keepInput as well', async () => {
+    const r = await lua.doString(`
+      NxcUi.Focus.acquire({ owner = 'nxc_target', surface = 'menu', mode = 'cursor' })
+      NxcUi.Focus.forceRelease()
+      local s = NxcUi.Focus.nativeState()
+      return { hasFocus = s.hasFocus, hasCursor = s.hasCursor, keepInput = s.keepInput }
+    `);
+    // SetNuiFocusKeepInput is sticky. Leaving it true after a menu closes would
+    // make the next modal surface unable to block movement, which is the whole
+    // point of a modal one.
+    assert.equal(r.hasFocus, false);
+    assert.equal(r.hasCursor, false);
+    assert.equal(r.keepInput, false);
   });
 
   test('full mode takes keyboard and cursor', async () => {

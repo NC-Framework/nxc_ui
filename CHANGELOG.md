@@ -2,6 +2,26 @@
 
 Entries are added only for genuinely user-visible or contract-relevant changes.
 
+## 0.2.4 - 2026-08-03
+
+### Fixed
+
+- **A context menu could not be clicked.** `SetNuiFocus(hasFocus, hasCursor)`
+  takes INPUT first and VISIBILITY second. Cursor mode passed `hasFocus = false`,
+  reasoning that "cursor only" meant "no keyboard" — so the menu was drawn, the
+  cursor moved over it, and the browser received no mouse events at all. Clicking
+  did nothing, exactly as though the buttons were pictures.
+
+  Two separate things were conflated. Receiving clicks is `hasFocus`. Leaving the
+  player able to walk is `SetNuiFocusKeepInput`, a different native, which cursor
+  mode now sets.
+
+  **A test asserted the wrong value and certified the bug.** It has been
+  corrected rather than deleted, and says what it got wrong.
+
+  `SetNuiFocusKeepInput` is sticky, so it is applied on release too: left true
+  after a menu closed, the next modal surface could not block movement.
+
 ## 0.2.3 - 2026-08-03
 
 ### Added

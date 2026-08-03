@@ -166,13 +166,28 @@ end
 ---
 ---@return { hasFocus: boolean, hasCursor: boolean }
 function Focus.nativeState()
-    if not current then return { hasFocus = false, hasCursor = false } end
-    if current.mode == Focus.MODE.CURSOR then
-        -- Cursor without keyboard: the player can still move, which is what a
-        -- non-blocking menu means.
-        return { hasFocus = false, hasCursor = true }
+    if not current then
+        return { hasFocus = false, hasCursor = false, keepInput = false }
     end
-    return { hasFocus = true, hasCursor = true }
+
+    if current.mode == Focus.MODE.CURSOR then
+        -- **THE NUI MUST HAVE FOCUS TO RECEIVE A CLICK.**
+        --
+        -- `SetNuiFocus(hasFocus, hasCursor)` takes INPUT first and VISIBILITY
+        -- second. This previously returned `hasFocus = false`, reasoning that
+        -- "cursor only" meant no keyboard — so the cursor was drawn and the
+        -- browser received no mouse events at all. A menu appeared, the cursor
+        -- moved over it, and clicking did nothing, exactly as though the buttons
+        -- were pictures.
+        --
+        -- Keeping the player able to move is `SetNuiFocusKeepInput`, which is a
+        -- separate native and the actual mechanism for it. The two were
+        -- conflated.
+        return { hasFocus = true, hasCursor = true, keepInput = true }
+    end
+
+    -- Full: the interface takes everything and the player cannot move.
+    return { hasFocus = true, hasCursor = true, keepInput = false }
 end
 
 --- Test helper.
