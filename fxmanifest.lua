@@ -24,7 +24,7 @@ nxc_legacy_compatibility 'none'
 
 author 'The Nexus Core Framework team'
 description 'The shared Nexus Core design system and NUI contracts.'
-version '0.2.5'
+version '0.3.0'
 
 -- Scripts are ENUMERATED, in load order. A glob sorts alphabetically, which is
 -- not dependency order.
@@ -49,6 +49,7 @@ shared_scripts {
     '@nxc_lib/shared/persistence.lua',
     '@nxc_lib/shared/migrations.lua',
     '@nxc_lib/shared/config_schema.lua',
+    '@nxc_lib/shared/service_client.lua',
 
     'shared/namespace.lua',
     'shared/focus.lua',

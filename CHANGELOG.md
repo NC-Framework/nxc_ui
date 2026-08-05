@@ -105,6 +105,13 @@ Entries are added only for genuinely user-visible or contract-relevant changes.
 
 ## Unreleased
 
+## 0.3.0 — 2026-08-05
+
+### Added
+
+- Registers itself as a service with nxc_core, and exports `health`.
+
+
 ### Added
 
 - Focus as a state machine with exactly one owner, released on close, escape, error, and

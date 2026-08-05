@@ -71,5 +71,21 @@ end)
 
 exports('onCallback', function(surface, handler) Callbacks.on(surface, handler) end)
 
+-- The server half of nxc_ui is the callback surface, and it is ready as soon as
+-- it exists. The interface itself lives on the client, whose health is a
+-- separate question this deliberately does not answer: a server owner asking
+-- whether nxc_ui is up is asking about the resource, not about one player's
+-- browser.
+Nxc.Service.start({
+    dependencies = { 'nxc_lib' },
+    contractVersion = NxcUi.CONTRACT_VERSION,
+    capabilities = { 'surfaces', 'callbacks' },
+    ready = true,
+})
+
+--- This resource's own health, for nxc_core's aggregate and for anyone asking
+--- directly. Plain, because a report behind a metatable arrives empty.
+exports('health', function() return Nxc.plain(Nxc.Health.report()) end)
+
 NxcUi.Callbacks = Callbacks
 return Callbacks
